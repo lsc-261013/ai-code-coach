@@ -9,7 +9,7 @@ import { collectLocal } from './engine/collector';
 import { sanitizeContent } from './engine/sanitizer';
 import { analyzeAll } from './engine/analyzer';
 import { reviewFiles } from './engine/reviewer';
-import { generateReport, saveReport, generateTerminalSummary } from './engine/reporter';
+import { generateReport, saveReport, saveHtmlReport, generateTerminalSummary } from './engine/reporter';
 
 // Load .env from cwd
 dotenv.config();
@@ -166,17 +166,18 @@ async function runAnalysis(config: CoachConfig): Promise<void> {
     reportsDir,
   });
 
-  // 6. Save JSON
-  const reportPath = saveReport(report, reportsDir);
+  // 6. Save reports
+  const jsonPath = saveReport(report, reportsDir);
+  const htmlPath = saveHtmlReport(report, reportsDir);
 
   // 7. Terminal output
   if (config.outputMode !== 'json-only') {
     console.log(generateTerminalSummary(report));
-    console.log(`Full report saved to: ${reportPath}`);
+    console.log(`Report saved: ${htmlPath}`);
   }
 
   if (config.outputMode !== 'terminal-only') {
-    console.log(`Web dashboard: open src/web/dashboard.html and drag in ${reportPath}`);
+    console.log('Open the HTML report to view the dashboard.');
   }
 }
 
