@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 reports/*.json
+reports/*.html
 !reports/.gitkeep
 *.js.map
 .DS_Store
