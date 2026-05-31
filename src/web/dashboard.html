@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Code Coach — Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>AI Code Coach</h1>
+      <div class="header-meta">
+        <span id="project-name">—</span>
+        <span class="dot">•</span>
+        <span id="last-analysis">—</span>
+        <span class="dot">•</span>
+        <span id="model-used">—</span>
+      </div>
+    </header>
+
+    <div class="cards">
+      <div class="card card-primary">
+        <div class="card-label">综合评分</div>
+        <div class="card-value" id="overall-score">—</div>
+        <div class="card-unit">/ 10</div>
+      </div>
+      <div class="card card-trend">
+        <div class="card-label">成长趋势</div>
+        <div class="card-value" id="growth-value">—</div>
+        <div class="card-unit" id="growth-unit"></div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-box">
+        <h2>五维雷达</h2>
+        <canvas id="radar-chart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h2>历史趋势</h2>
+        <canvas id="history-chart"></canvas>
+      </div>
+    </div>
+
+    <div class="issues-section">
+      <h2>问题清单 <span id="issue-count"></span></h2>
+      <div class="issue-filters">
+        <button class="filter active" data-filter="all">全部</button>
+        <button class="filter" data-filter="critical">严重</button>
+        <button class="filter" data-filter="high">高危</button>
+        <button class="filter" data-filter="medium">中危</button>
+        <button class="filter" data-filter="low">低危</button>
+      </div>
+      <div id="issue-list" class="issue-list"></div>
+    </div>
+
+    <div class="highlights-section" id="highlights"></div>
+
+    <footer class="footer">
+      <button onclick="document.getElementById('file-input').click()">加载报告</button>
+      <input type="file" id="file-input" accept=".json" hidden onchange="loadReportFile(event)">
+      <button onclick="window.print()">导出 PDF</button>
+      <span class="version" id="version-display"></span>
+    </footer>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
