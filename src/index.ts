@@ -3,8 +3,9 @@
 import { Command } from 'commander';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { execSync } from 'child_process';
 import { buildConfig } from './config';
-import { CoachConfig, ModelName } from './types';
+import { CoachConfig } from './types';
 import { collectLocal } from './engine/collector';
 import { sanitizeContent } from './engine/sanitizer';
 import { analyzeAll } from './engine/analyzer';
@@ -14,6 +15,32 @@ import { generateReport, saveReport, saveHtmlReport, generateTerminalSummary } f
 // Load .env from cwd
 dotenv.config();
 dotenv.config({ path: path.join(process.cwd(), '.env') });
+
+function getApiKey(model: string): string | null {
+  switch (model) {
+    case 'deepseek': return process.env.DEEPSEEK_API_KEY || null;
+    case 'claude': return process.env.CLAUDE_API_KEY || null;
+    case 'kimi': return process.env.KIMI_API_KEY || null;
+    default: return process.env.DEEPSEEK_API_KEY || null;
+  }
+}
+
+function openFile(filePath: string): void {
+  try {
+    switch (process.platform) {
+      case 'win32':
+        execSync(`start "" "${filePath}"`, { stdio: 'ignore' });
+        break;
+      case 'darwin':
+        execSync(`open "${filePath}"`, { stdio: 'ignore' });
+        break;
+      default:
+        execSync(`xdg-open "${filePath}"`, { stdio: 'ignore' });
+    }
+  } catch {
+    // Silent fail — don't ruin the analysis just because browser won't open
+  }
+}
 
 const program = new Command();
 
@@ -31,8 +58,9 @@ program
   .option('--no-sanitize', 'Disable secret sanitization (use with caution)')
   .option('--schedule <frequency>', 'Set up scheduled analysis: daily, weekly')
   .option('--trend', 'Show growth trend from history (no LLM call)')
-  .option('--no-web', 'Skip web dashboard JSON, terminal only')
+  .option('--no-web', 'Skip HTML report, terminal only')
   .option('--json-only', 'Generate JSON report only, no terminal output')
+  .option('--no-open', 'Do not auto-open report in browser')
   .action(async (projectPath: string, opts: any) => {
     try {
       const config = buildConfig({
@@ -74,7 +102,7 @@ program
       }
 
       // Normal analysis mode
-      await runAnalysis(config);
+      await runAnalysis(config, opts.open !== false);
     } catch (err) {
       console.error('Error:', (err as Error).message);
       process.exit(1);
@@ -105,21 +133,31 @@ program
     const model = modelMap[choice] || 'deepseek';
 
     console.log(`\nDefault model set to: ${model}`);
-    console.log('Set API keys in your .env file:');
+    console.log('Set API keys in your .env file or environment variables:');
     console.log('  DEEPSEEK_API_KEY=sk-xxx');
     console.log('  CLAUDE_API_KEY=sk-ant-xxx');
-    console.log('  KIMI_API_KEY=sk-xxx\n');
+    console.log('  KIMI_API_KEY=sk-xxx');
+    console.log('\nWithout an API key, ai-coach runs static analysis only (style + quality).');
+    console.log('Deep review (security + performance) requires an API key.\n');
 
     readline.close();
   });
 
-async function runAnalysis(config: CoachConfig): Promise<void> {
+async function runAnalysis(config: CoachConfig, autoOpen: boolean): Promise<void> {
   const absPath = path.resolve(config.projectPath);
   const reportsDir = path.join(absPath, 'reports');
   const projectName = path.basename(absPath);
 
+  const apiKey = getApiKey(config.model);
+  const hasLLM = !!apiKey;
+
+  if (!hasLLM && config.focus.some((f: string) => ['security', 'performance'].includes(f))) {
+    console.log(`Note: No ${config.model.toUpperCase()} API key found. Skipping deep review.`);
+    console.log(`  Set ${config.model === 'deepseek' ? 'DEEPSEEK_API_KEY' : config.model === 'claude' ? 'CLAUDE_API_KEY' : 'KIMI_API_KEY'} in .env for LLM-powered security & performance analysis.\n`);
+  }
+
   console.log(`\nAnalyzing: ${absPath}`);
-  console.log(`  Model: ${config.model}  |  Focus: ${config.focus.join(', ')}  |  Scope: ${config.scope}\n`);
+  console.log(`  Model: ${config.model}${!hasLLM ? ' (static only)' : ''}  |  Focus: ${config.focus.join(', ')}  |  Scope: ${config.scope}\n`);
 
   // 1. Collect
   console.log('Collecting files...');
@@ -139,13 +177,13 @@ async function runAnalysis(config: CoachConfig): Promise<void> {
     }
   }
 
-  // 3. Static analysis (no LLM)
+  // 3. Static analysis
   console.log('Running static analysis...');
   const staticScores = analyzeAll(files, config.focus);
 
-  // 4. LLM review
+  // 4. LLM review (only if API key available)
   let llmIssues: any[] = [];
-  if (config.focus.some((f: string) => ['security', 'performance', 'quality'].includes(f))) {
+  if (hasLLM && config.focus.some((f: string) => ['security', 'performance', 'quality'].includes(f))) {
     console.log(`Calling ${config.model} API for deep review...`);
     llmIssues = await reviewFiles(files, {
       model: config.model,
@@ -167,7 +205,7 @@ async function runAnalysis(config: CoachConfig): Promise<void> {
   });
 
   // 6. Save reports
-  const jsonPath = saveReport(report, reportsDir);
+  saveReport(report, reportsDir);
   const htmlPath = saveHtmlReport(report, reportsDir);
 
   // 7. Terminal output
@@ -176,8 +214,9 @@ async function runAnalysis(config: CoachConfig): Promise<void> {
     console.log(`Report saved: ${htmlPath}`);
   }
 
-  if (config.outputMode !== 'terminal-only') {
-    console.log('Open the HTML report to view the dashboard.');
+  // 8. Auto-open
+  if (autoOpen && config.outputMode !== 'terminal-only' && config.outputMode !== 'json-only') {
+    openFile(htmlPath);
   }
 }
 
