@@ -6,33 +6,13 @@
   "bin": {
     "ai-coach": "./dist/index.js"
   },
-  "files": [
-    "dist/",
-    "README.md",
-    ".env.example"
-  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest --verbose",
-    "test:watch": "jest --watch",
-    "prepublishOnly": "npm test && npm run build"
+    "test:watch": "jest --watch"
   },
-  "keywords": [
-    "code-review",
-    "ai",
-    "claude",
-    "deepseek",
-    "kimi",
-    "code-quality",
-    "cli",
-    "developer-tools"
-  ],
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/lsc-261013/ai-code-coach"
-  },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",

@@ -175,54 +175,61 @@ function buildStandaloneHtml(report: CoachReport): string {
 <title>AI Code Coach — ${escapeHtml(report.meta.project)}</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"><\/script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
 :root {
-  --bg: #0f1117; --surface: #1a1d27; --border: #2a2d3a;
-  --text: #e4e6ed; --text-secondary: #8b8fa3; --accent: #6366f1;
-  --green: #22c55e; --red: #ef4444; --yellow: #f59e0b; --radius: 12px;
+  --bg: #090a0f; --surface: #111318; --border: #1e2130;
+  --text: #e8e9f0; --text-secondary: #7c7f94; --accent: #818cf8;
+  --accent-glow: rgba(129,140,248,.15); --green: #34d399; --red: #f87171;
+  --yellow: #fbbf24; --orange: #fb923c; --pink: #f472b6; --radius: 10px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
-.container{max-width:1100px;margin:0 auto;padding:32px 24px}
-.header{display:flex;justify-content:space-between;align-items:center;padding-bottom:24px;border-bottom:1px solid var(--border);margin-bottom:32px;flex-wrap:wrap;gap:12px}
-.header h1{font-size:28px;font-weight:700}
-.header-meta{display:flex;gap:8px;color:var(--text-secondary);font-size:14px;align-items:center}
+body{font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);background-image:radial-gradient(ellipse at 50% 0%,rgba(129,140,248,.06) 0%,transparent 70%);color:var(--text);line-height:1.6}
+.container{max-width:1100px;margin:0 auto;padding:40px 24px}
+.header{display:flex;justify-content:space-between;align-items:center;padding-bottom:28px;border-bottom:1px solid var(--border);margin-bottom:36px;flex-wrap:wrap;gap:12px}
+.header h1{font-size:28px;font-weight:700;letter-spacing:-.02em;background:linear-gradient(135deg,#c4b5fd,#818cf8,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header-meta{display:flex;gap:8px;color:var(--text-secondary);font-size:13px;align-items:center}
 .dot{color:var(--border)}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center}
-.card-label{font-size:14px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.card-value{font-size:48px;font-weight:700;color:var(--accent)}
-.card-trend .card-value{color:var(--accent)}
-.card-unit{font-size:14px;color:var(--text-secondary)}
-.charts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:24px;margin-bottom:32px}
-.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px}
-.chart-box h2{font-size:16px;margin-bottom:16px;color:var(--text-secondary)}
-.chart-box canvas{max-height:350px}
-.issues-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:32px}
-.issues-section h2{font-size:18px;margin-bottom:16px}
-#issue-count{font-size:14px;color:var(--text-secondary);font-weight:normal}
-.issue-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-.filter{background:transparent;border:1px solid var(--border);color:var(--text-secondary);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:13px;transition:all .2s}
-.filter:hover{border-color:var(--accent);color:var(--text)}
-.filter.active{background:var(--accent);border-color:var(--accent);color:white}
-.issue-list{display:flex;flex-direction:column;gap:12px}
-.issue-item{display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--bg);border-radius:8px;border-left:3px solid var(--border)}
-.issue-item.severity-critical{border-left-color:var(--red)}
-.issue-item.severity-high{border-left-color:#f97316}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:36px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;text-align:center;position:relative;overflow:hidden;transition:border-color .3s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .3s}
+.card:hover{border-color:#2a2d44}
+.card:hover::before{opacity:.6}
+.card-label{font-size:12px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:500}
+.card-value{font-size:52px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.card-primary .card-value{color:#c4b5fd;text-shadow:0 0 40px var(--accent-glow)}
+.card-unit{font-size:13px;color:var(--text-secondary);margin-top:6px}
+.charts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:24px;margin-bottom:36px}
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;transition:border-color .3s}
+.chart-box:hover{border-color:#2a2d44}
+.chart-box h2{font-size:14px;margin-bottom:20px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;font-weight:500}
+.chart-box canvas{max-height:380px}
+.issues-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:36px}
+.issues-section h2{font-size:16px;margin-bottom:20px;font-weight:600}
+#issue-count{font-size:13px;color:var(--text-secondary);font-weight:400}
+.issue-filters{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.filter{background:transparent;border:1px solid var(--border);color:var(--text-secondary);padding:6px 16px;border-radius:20px;cursor:pointer;font-size:12px;transition:all .2s;font-family:'Space Grotesk',sans-serif}
+.filter:hover{border-color:var(--accent);color:var(--text);background:rgba(129,140,248,.05)}
+.filter.active{background:rgba(129,140,248,.15);border-color:var(--accent);color:#c4b5fd}
+.issue-list{display:flex;flex-direction:column;gap:10px}
+.issue-item{display:flex;align-items:flex-start;gap:14px;padding:16px;background:var(--bg);border-radius:8px;border-left:3px solid var(--border);transition:border-color .2s,transform .2s}
+.issue-item:hover{transform:translateX(2px)}
+.issue-item.severity-critical{border-left-color:var(--red);background:rgba(248,113,113,.04)}
+.issue-item.severity-high{border-left-color:var(--orange)}
 .issue-item.severity-medium{border-left-color:var(--yellow)}
 .issue-item.severity-low{border-left-color:var(--text-secondary)}
-.issue-severity{font-size:20px;flex-shrink:0}
-.issue-body{flex:1}
-.issue-title{font-weight:600;margin-bottom:4px}
-.issue-file{font-size:13px;color:var(--text-secondary);font-family:'JetBrains Mono','Fira Code',monospace}
-.issue-suggestion{font-size:13px;color:var(--text-secondary);margin-top:6px;font-style:italic}
+.issue-severity{font-size:18px;flex-shrink:0;line-height:1.4}
+.issue-body{flex:1;min-width:0}
+.issue-title{font-weight:600;margin-bottom:3px;font-size:14px}
+.issue-file{font-size:12px;color:var(--text-secondary);font-family:'JetBrains Mono','Fira Code',monospace}
+.issue-suggestion{font-size:12px;color:var(--text-secondary);margin-top:6px;font-style:italic;opacity:.85}
 .hidden{display:none}
-.highlights-section{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px}
-.highlight-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 20px;font-size:14px}
-.footer{display:flex;justify-content:center;gap:16px;align-items:center;padding-top:24px;border-top:1px solid var(--border);margin-bottom:16px}
-.footer button{background:var(--accent);color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;transition:opacity .2s}
-.footer button:hover{opacity:.85}
-.version{font-size:12px;color:var(--text-secondary)}
-@media(max-width:768px){.charts-row{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}.header{flex-direction:column;align-items:flex-start}}
+.highlights-section{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:36px}
+.highlight-item{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:10px 20px;font-size:13px}
+.footer{display:flex;justify-content:center;gap:16px;align-items:center;padding-top:28px;border-top:1px solid var(--border);margin-bottom:16px}
+.footer button{background:linear-gradient(135deg,#818cf8,#6366f1);color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:13px;transition:opacity .2s,transform .2s;font-family:'Space Grotesk',sans-serif;font-weight:500}
+.footer button:hover{opacity:.9;transform:translateY(-1px)}
+.version{font-size:11px;color:var(--text-secondary)}
+@media(max-width:768px){.charts-row{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}.header{flex-direction:column;align-items:flex-start}.card-value{font-size:40px}}
 </style>
 </head>
 <body>
@@ -310,11 +317,11 @@ if(h.length===0){ctx.canvas.parentElement.innerHTML='<p style="color:#8b8fa3;tex
 historyChart=new Chart(ctx,{type:'line',data:{
 labels:h.map(function(h){return h.date}),
 datasets:[
-{label:'综合',data:h.map(function(h){return h.overall}),borderColor:'#6366f1',tension:.3,borderWidth:2,pointRadius:4},
-{label:'风格',data:h.map(function(h){return h.style}),borderColor:'#22c55e',tension:.3,borderWidth:1,hidden:true},
-{label:'质量',data:h.map(function(h){return h.quality}),borderColor:'#3b82f6',tension:.3,borderWidth:1,hidden:true},
-{label:'安全',data:h.map(function(h){return h.security}),borderColor:'#f59e0b',tension:.3,borderWidth:1,hidden:true},
-{label:'性能',data:h.map(function(h){return h.performance}),borderColor:'#ec4899',tension:.3,borderWidth:1,hidden:true}]},
+{label:'综合',data:h.map(function(h){return h.overall}),borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,0.05)',fill:false,tension:.3,borderWidth:2.5,pointRadius:5,pointBackgroundColor:'#6366f1'},
+{label:'风格',data:h.map(function(h){return h.style}),borderColor:'#22c55e',fill:false,tension:.3,borderWidth:2,pointRadius:3,pointBackgroundColor:'#22c55e'},
+{label:'质量',data:h.map(function(h){return h.quality}),borderColor:'#3b82f6',fill:false,tension:.3,borderWidth:2,pointRadius:3,pointBackgroundColor:'#3b82f6'},
+{label:'安全',data:h.map(function(h){return h.security}),borderColor:'#f59e0b',fill:false,tension:.3,borderWidth:2,pointRadius:3,pointBackgroundColor:'#f59e0b'},
+{label:'性能',data:h.map(function(h){return h.performance}),borderColor:'#ec4899',fill:false,tension:.3,borderWidth:2,pointRadius:3,pointBackgroundColor:'#ec4899'}]},
 options:{scales:{y:{min:0,max:10,ticks:{color:'#8b8fa3'},grid:{color:'#2a2d3a'}},x:{ticks:{color:'#8b8fa3'},grid:{display:false}}},
 plugins:{legend:{labels:{color:'#e4e6ed',usePointStyle:true}}},interaction:{mode:'index',intersect:false}}});
 })();
